@@ -21,7 +21,6 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id_user")
     private UUID id;
 
     @Column(name = "name", nullable = false)
@@ -42,10 +41,6 @@ public class User {
     @Column(name = "phone", length = 20)
     private String phone;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private Address address;
-
     @Column(name = "client")
     private boolean isClient;
 
@@ -55,5 +50,8 @@ public class User {
     private LocalDateTime dateRegistration;
 
     private LocalDateTime dateUpdate;
+
+    @Column(name = "active")
+    private boolean isActive;
 
 }

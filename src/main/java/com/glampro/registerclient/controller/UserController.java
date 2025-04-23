@@ -15,22 +15,22 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @Autowired
-    protected UserService UserService;
+    protected UserService userService;
 
-    @PostMapping("/signUp")
+    @PostMapping()
     public ResponseEntity<?> createUser(@RequestBody UserRequestDTO userRequestDTO){
         try {
-            UserService.createUser(userRequestDTO);
+            userService.createUser(userRequestDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body("Usuário criado com sucesso!");
         } catch (ExceptionHandler e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    @PutMapping("/update/dado")
+    @PutMapping("/update")
     public ResponseEntity<?> updateUser(@RequestBody UserUpdateDTO userUpdateDTO){
         try {
-            UserService.updateUser(userUpdateDTO);
+            userService.updateServiceSalon(userUpdateDTO);
             return ResponseEntity.ok("Usuário alterado com sucesso!");
         } catch (ExceptionHandler e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -40,7 +40,7 @@ public class UserController {
     @PutMapping("/update/password")
     public ResponseEntity<?> updatePasswordUser(@RequestBody UpdatePasswordUserDTO updatePasswordUserDTO){
         try {
-            UserService.updatePassword(updatePasswordUserDTO);
+            userService.updatePassword(updatePasswordUserDTO);
             return ResponseEntity.ok("Password alterado com sucesso!");
         } catch (ExceptionHandler e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -50,7 +50,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> listUser(){
         try {
-            return ResponseEntity.ok(UserService.listUser());
+            return ResponseEntity.ok(userService.listUser());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -59,7 +59,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable String id){
         try {
-            return ResponseEntity.ok(UserService.getUserId(id));
+            return ResponseEntity.ok(userService.getUserId(id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -69,7 +69,7 @@ public class UserController {
     public ResponseEntity<?> getUserEmail(
             @RequestParam(name = "email",  required = true) String email){
         try {
-            return ResponseEntity.ok(UserService.getUserByEmail(email));
+            return ResponseEntity.ok(userService.getUserByEmail(email));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -78,7 +78,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> getUserDelete(@PathVariable String id){
         try {
-
+            userService.deleteUser(id);
             return ResponseEntity.ok("Usuário de deletado com sucesso!");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

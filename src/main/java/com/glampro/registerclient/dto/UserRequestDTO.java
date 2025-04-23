@@ -25,8 +25,8 @@ public class UserRequestDTO {
 
     private AddressDTO address;
 
-    private boolean isClient;
+    private boolean client;
 
-    private boolean isProfessional;
+    private boolean professional;
 
 }

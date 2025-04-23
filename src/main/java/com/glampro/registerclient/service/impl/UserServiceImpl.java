@@ -10,13 +10,11 @@ import com.glampro.registerclient.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -25,12 +23,16 @@ public class UserServiceImpl implements UserService {
     @Autowired
     protected UserRepository userRepository;
 
+    @Autowired
+    protected AddressRepository addressRepository;
+
     @Override
     public void createUser(UserRequestDTO userRequestDTO) throws ExceptionHandler {
         try{
             //criando usuário
             User user = new User();
             validateEmail(userRequestDTO.getEmail());
+            validateCpf(userRequestDTO.getCpf());
             user.setName(userRequestDTO.getName());
             user.setEmail(userRequestDTO.getEmail());
             user.setCpf(userRequestDTO.getCpf());
@@ -41,12 +43,13 @@ public class UserServiceImpl implements UserService {
             user.setProfessional(userRequestDTO.isProfessional());
             user.setDateRegistration(LocalDateTime.now());
             user.setDateUpdate(LocalDateTime.now());
+            user.setActive(true);
 
             Address address = getAddress(userRequestDTO.getAddress());
             address.setDateRegistration(LocalDateTime.now());
             address.setUser(user);
-            user.setAddress(address);
             userRepository.save(user);
+            addressRepository.save(address);
 
         }catch (RuntimeException e){
             throw new ExceptionHandler("Erro ao criar usuário. Tente mais tarde");
@@ -54,7 +57,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UserUpdateDTO userUpdate) throws ExceptionHandler {
+    public void updateServiceSalon(UserUpdateDTO userUpdate) throws ExceptionHandler {
         Optional<User> optionalUser = userRepository.findById(UUID.fromString(userUpdate.getId()));
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("usuário não existe e por isso não pode se atualizado");
@@ -66,22 +69,27 @@ public class UserServiceImpl implements UserService {
         }
         user.setName(userUpdate.getName());
         user.setEmail(userUpdate.getEmail());
-        user.setCpf(userUpdate.getCpf());
         user.setBirthDate(transformStringData(userUpdate.getBirthDate()));
         user.setPhone(userUpdate.getPhone());
         user.setClient(userUpdate.isClient());
         user.setProfessional(userUpdate.isProfessional());
 
-        Address address = getAddress(userUpdate.getAddress());
-        address.setUser(user);
-        user.setAddress(address);
+        Address address = addressRepository.findByUser(user);
+        address.setStreet(userUpdate.getAddress().getStreet());
+        address.setNumber(userUpdate.getAddress().getNumber());
+        address.setComplement(userUpdate.getAddress().getComplement());
+        address.setCity(userUpdate.getAddress().getCity());
+        address.setState(userUpdate.getAddress().getState());
+        address.setZipCode(userUpdate.getAddress().getZipCode());
+        address.setDateUpdate(LocalDateTime.now());
         userRepository.save(user);
+        addressRepository.save(address);
     }
 
     @Override
     public void updatePassword(UpdatePasswordUserDTO updatePasswordUserDTO) throws ExceptionHandler {
         Optional<User> optionalUser = userRepository.findById(UUID.fromString(updatePasswordUserDTO.getId()));
-        if (optionalUser.isEmpty()) {
+        if (optionalUser.isEmpty() || !optionalUser.get().isActive()) {
             throw new RuntimeException("usuário não existe.");
         }
         User user = optionalUser.get();
@@ -90,50 +98,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<ResponseUserDTO> listUser() throws ExceptionHandler {
-        List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-             return Collections.emptyList();
+    public List<UserResponseDTO> listUser() throws ExceptionHandler {
+        return userRepository.findAllUsersWithAddresses(null);
+    }
+
+    @Override
+    public UserResponseDTO getUserId(String idUser) throws ExceptionHandler {
+        List<UserResponseDTO> listUser = userRepository.findAllUsersWithAddresses(UUID.fromString(idUser));
+        if (listUser.isEmpty()) {
+            return null;
         }
-        // Converter usuários em DTOs
-        return users.stream()
-                .map(user -> new ResponseUserDTO(
-                        user.getId().toString(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getCpf(),
-                        user.getPhone(),
-                        user.getBirthDate().toString(),
-                        null,//user.getAddress(),
-                        user.isClient(),
-                        user.isProfessional()
-                ))
-                .collect(Collectors.toList());
+        return listUser.get(0);
     }
 
     @Override
-    public ResponseUserDTO getUserId(String idUser) throws ExceptionHandler {
-        return null;
-    }
-
-    @Override
-    public ResponseUserDTO getUserByEmail(String email) throws ExceptionHandler {
-        return null;
+    public UserResponseDTO getUserByEmail(String email) throws ExceptionHandler {
+        return userRepository.findUserByEmail(email);
     }
 
     @Override
     public void deleteUser(String idUser) throws ExceptionHandler {
-
+        Optional<User> optionalUser = userRepository.findById(UUID.fromString(idUser));
+        if (optionalUser.isEmpty() || !optionalUser.get().isActive()) {
+            throw new RuntimeException("usuário não existe e por isso não pode ser deletado");
+        }
+        User user = optionalUser.get();
+        user.setActive(false);
+        userRepository.save(user);
     }
 
     private Address getAddress(AddressDTO addressDTO) {
         Address address = new Address();
+        address.setStreet(addressDTO.getStreet());
         address.setNumber(addressDTO.getNumber());
         address.setComplement(addressDTO.getComplement());
-        address.setNeighborhood(addressDTO.getNeighborhood());
         address.setCity(addressDTO.getCity());
         address.setState(addressDTO.getState());
-        address.setNeighborhood(addressDTO.getNeighborhood());
         address.setZipCode(addressDTO.getZipCode());
         address.setDateUpdate(LocalDateTime.now());
         return address;
@@ -144,13 +144,21 @@ public class UserServiceImpl implements UserService {
         try {
             return formato.parse(data);
         } catch (ParseException e) {
-            throw new ExceptionHandler("Formato de data inválido!");
+            throw new ExceptionHandler("Formato de data inválido! Fomato correto = dd-MM-yyyy");
         }
     }
 
     private void validateEmail(String email) throws ExceptionHandler {
-        if(userRepository.findByEmail(email).isPresent()){
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if(optionalUser.isPresent() && optionalUser.get().isActive()){
             throw new ExceptionHandler("E-mail já cadastrado!");
+        }
+    }
+
+    private void validateCpf(String cpf) throws ExceptionHandler {
+        Optional<User> optionalUser = userRepository.findByCpf(cpf);
+        if(optionalUser.isPresent() && optionalUser.get().isActive()){
+            throw new ExceptionHandler("CPF já cadastrado!");
         }
     }
 }
