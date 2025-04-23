@@ -24,25 +24,22 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "rua", length = 50)
+    @Column(name = "street", length = 100)
     private String street;
 
-    @Column(name = "número", length = 5)
+    @Column(name = "number", length = 10)
     private String number;
 
-    @Column(name = "complemento", length = 50)
+    @Column(name = "complement", length = 100)
     private String complement;
 
-    @Column(name = "vizinhança")
-    private String neighborhood;
-
-    @Column(name = "cidade")
+    @Column(name = "city")
     private String city;
 
-    @Column(name = "estado" , length = 2)
+    @Column(name = "state" , length = 2)
     private String state;
 
-    @Column(name = "cep", length = 8)
+    @Column(name = "zip_code", length = 9)
     private String zipCode;
 
     @OneToOne

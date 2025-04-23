@@ -19,8 +19,6 @@ public class UserUpdateDTO {
 
     private String phone;
 
-    private String cpf;
-
     private String birthDate;
 
     private AddressDTO address;
