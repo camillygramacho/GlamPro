@@ -5,6 +5,7 @@ import com.glampro.registerclient.dto.UserRequestDTO;
 import com.glampro.registerclient.dto.UserUpdateDTO;
 import com.glampro.registerclient.exception.ExceptionHandler;
 import com.glampro.registerclient.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public class UserController {
     @Autowired
     protected UserService userService;
 
+    @Operation(summary = "Criar novo usuário")
     @PostMapping()
     public ResponseEntity<?> createUser(@RequestBody UserRequestDTO userRequestDTO){
         try {
@@ -27,6 +29,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "atualiza novo usuário")
     @PutMapping("/update")
     public ResponseEntity<?> updateUser(@RequestBody UserUpdateDTO userUpdateDTO){
         try {
@@ -37,6 +40,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "atualiza senha de usuário")
     @PutMapping("/update/password")
     public ResponseEntity<?> updatePasswordUser(@RequestBody UpdatePasswordUserDTO updatePasswordUserDTO){
         try {
@@ -47,6 +51,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "lista todos os usuário")
     @GetMapping
     public ResponseEntity<?> listUser(){
         try {
@@ -56,6 +61,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "busca usuário por id")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable String id){
         try {
@@ -65,6 +71,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "busca por e-mail")
     @GetMapping("/byEmail")
     public ResponseEntity<?> getUserEmail(
             @RequestParam(name = "email",  required = true) String email){
@@ -75,6 +82,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "deleta usuário por id")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> getUserDelete(@PathVariable String id){
         try {

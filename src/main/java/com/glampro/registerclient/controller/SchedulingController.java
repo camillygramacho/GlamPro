@@ -3,6 +3,7 @@ package com.glampro.registerclient.controller;
 
 import com.glampro.registerclient.dto.SchedulingRequestDTO;
 import com.glampro.registerclient.service.impl.SchedulingServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public class SchedulingController {
     @Autowired
     protected SchedulingServiceImpl schedulingServiceImpl;
 
+    @Operation(summary = "cadastra agendamento")
     @PostMapping("/create_available")
     public ResponseEntity<?> createScheduling(@RequestBody List<SchedulingRequestDTO> listScheduling,
                                               @RequestHeader String userId){
@@ -28,6 +30,7 @@ public class SchedulingController {
         }
     }
 
+    @Operation(summary = "busca agendamento")
     @GetMapping
     public ResponseEntity<?> listScheduling(){
         try {

@@ -3,6 +3,7 @@ package com.glampro.registerclient.controller;
 
 import com.glampro.registerclient.dto.*;
 import com.glampro.registerclient.service.ServiceSalonService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ public class ServiceSalonController {
     @Autowired
     protected ServiceSalonService serviceSalonService;
 
+    @Operation(summary = "Criar novo serviço do salão")
     @PostMapping()
     public ResponseEntity<?> createServiceSalon(@RequestBody ServiceSalonRequestDTO requestSalon,
                                                 @RequestHeader String userId){
@@ -27,6 +29,7 @@ public class ServiceSalonController {
         }
     }
 
+    @Operation(summary = "atuliza serviço do salão")
     @PutMapping()
     public ResponseEntity<?> ServiceSalonRequestUpdateDTO(
             @RequestBody ServiceSalonRequestUpdateDTO request, @RequestHeader String userId){
@@ -38,6 +41,7 @@ public class ServiceSalonController {
         }
     }
 
+    @Operation(summary = "busca serviço do salão por id do profissional ou nome do serviço")
     @GetMapping
     public ResponseEntity<?> listService(@Param("idProfessional") String idProfessional,
                                          @Param("nameService") String nameService){
