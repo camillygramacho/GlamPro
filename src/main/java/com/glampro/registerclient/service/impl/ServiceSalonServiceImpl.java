@@ -29,8 +29,9 @@ public class ServiceSalonServiceImpl implements ServiceSalonService {
 
 
     @Override
-    public void createServiceSalon(ServiceSalonRequestDTO requestHall, String userId) {
-        User user = validateUser(userId, requestHall.getIdProfessional());
+    public void createServiceSalon(ServiceSalonRequestDTO requestHall, String email) {
+        User user = validateUser(email, requestHall.getEmail());
+
         ServiceSalon serviceSalon = new ServiceSalon();
         serviceSalon.setNameService(requestHall.getNameService());
         serviceSalon.setProfessional(user);
@@ -57,11 +58,11 @@ public class ServiceSalonServiceImpl implements ServiceSalonService {
     }
 
     @Override
-    public List<ResponseServiceSalonDTO> getListServiceHall(String idProfessional, String nameService) {
+    public List<ResponseServiceSalonDTO> getListServiceHall(String emailProfessional, String nameService) {
         List<ServiceSalon> listServiceSalon;
 
-        if(idProfessional != null) {
-            Optional<User> optionalUser = userRepository.findById(UUID.fromString(idProfessional));
+        if(emailProfessional != null) {
+            Optional<User> optionalUser = userRepository.findByEmail(emailProfessional);
             if (optionalUser.isEmpty()) {
                 throw new RuntimeException("usuário não existe e por isso não pode se atualizado");
             }
@@ -94,13 +95,13 @@ public class ServiceSalonServiceImpl implements ServiceSalonService {
 
     }
 
-    private User validateUser(String idUserRegister, String idUserCreate){
+    private User validateUser(String emailRegister, String emailCreate){
 
-        if(!idUserRegister.equalsIgnoreCase(idUserCreate)){
+        if(!emailRegister.equalsIgnoreCase(emailCreate)){
             throw new RuntimeException("usuário não tem permissão para cadastrar serviço para outro profissional!");
         }
 
-        Optional<User> optionalUser = userRepository.findById(UUID.fromString(idUserRegister));
+        Optional<User> optionalUser = userRepository.findByEmail(emailCreate);
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("usuário não existe.");
         }

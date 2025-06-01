@@ -2,6 +2,7 @@ package com.glampro.registerclient.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.glampro.registerclient.dto.SchedulingRequestDTO;
+import com.glampro.registerclient.dto.SchedulingResponseDTO;
 import com.glampro.registerclient.exception.ExceptionHandler;
 import com.glampro.registerclient.model.Scheduling;
 import com.glampro.registerclient.model.ServiceSalon;
@@ -37,11 +38,11 @@ public class SchedulingServiceImpl implements SchedulingService {
 
 
     @Override
-    public void createScheduling(String userId, List<SchedulingRequestDTO> schedulingRequestDTO) {
+    public void createScheduling(String email, List<SchedulingRequestDTO> schedulingRequestDTO) {
 
         for (SchedulingRequestDTO scheduling : schedulingRequestDTO){
             Scheduling schedulingNew = new Scheduling();
-            ServiceSalon userServiceSalon = validateServiceProfessional(userId, scheduling.getIdServiceSalon());
+            ServiceSalon userServiceSalon = validateServiceProfessional(email, scheduling.getIdServiceSalon());
             schedulingNew.setDateTimeAvailable(scheduling.getDateTimeAvailable());
             schedulingNew.setServiceSalon(userServiceSalon);
             schedulingNew.setActive(true);
@@ -64,6 +65,13 @@ public class SchedulingServiceImpl implements SchedulingService {
     }
 
     @Override
+    public List<SchedulingResponseDTO> getListSchedulingParam(String email, String nameService) {
+        String paramEmail = email!=null && !email.isEmpty()? email: null;
+        String paramNameService = nameService!=null && !nameService.isEmpty()? nameService: null;
+        return schedulingRepository.listSchedulingFiltered(paramEmail,paramNameService);
+    }
+
+    @Override
     public void getListSchedulingByClient() {
 
     }
@@ -73,7 +81,7 @@ public class SchedulingServiceImpl implements SchedulingService {
 
     }
 
-    private ServiceSalon validateServiceProfessional(String idUserRegister, String idServiceSalon){
+    private ServiceSalon validateServiceProfessional(String email, String idServiceSalon){
 
         Optional<ServiceSalon> optionalServiceSalon = serviceSalonRepository.findById(UUID.fromString(idServiceSalon));
         if (optionalServiceSalon.isEmpty()) {
@@ -81,11 +89,11 @@ public class SchedulingServiceImpl implements SchedulingService {
         }
 
         ServiceSalon serviceSalon = optionalServiceSalon.get();
-        if (!serviceSalon.getProfessional().getId().toString().equalsIgnoreCase(idUserRegister)){
+        if (!serviceSalon.getProfessional().getEmail().equalsIgnoreCase(email)){
             throw new RuntimeException("usuário não tem permissão para cadastrar agendamento para outro profissional!");
         }
 
-        Optional<User> optionalUser = userRepository.findById(UUID.fromString(idUserRegister));
+        Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("usuário não existe.");
         }

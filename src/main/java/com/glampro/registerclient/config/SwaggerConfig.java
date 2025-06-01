@@ -14,4 +14,5 @@ public class SwaggerConfig {
                 .pathsToMatch("/**") // Inclui todos os endpoints
                 .build();
     }
+
 }

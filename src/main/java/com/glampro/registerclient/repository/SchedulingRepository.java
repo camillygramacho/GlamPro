@@ -1,5 +1,6 @@
 package com.glampro.registerclient.repository;
 
+import com.glampro.registerclient.dto.SchedulingResponseDTO;
 import com.glampro.registerclient.dto.UserResponseDTO;
 import com.glampro.registerclient.model.Scheduling;
 import com.glampro.registerclient.model.User;
@@ -15,5 +16,24 @@ import java.util.UUID;
 @Repository
 public interface SchedulingRepository extends JpaRepository<Scheduling, UUID> {
 
-
+    @Query("""
+    SELECT new com.glampro.registerclient.dto.SchedulingResponseDTO(
+        ag.id,
+        ser.nameService,
+        us.email,
+        us.name,
+        ad.city,
+        ag.dateScheduling
+    )
+    FROM Scheduling ag
+    LEFT JOIN ServiceSalon ser ON ag.serviceSalon.id = ser.id
+    LEFT JOIN User us ON ser.professional.id = us.id
+    LEFT JOIN Address ad ON us.id = ad.user.id
+    WHERE (:email IS NULL OR us.email = :email)
+      AND (:nameService IS NULL OR ser.nameService = :nameService)
+""")
+    List<SchedulingResponseDTO> listSchedulingFiltered(
+            @Param("email") String email,
+            @Param("nameService") String nameService
+    );
 }

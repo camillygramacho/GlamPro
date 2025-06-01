@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ServiceSalonRequestDTO {
 
-    private String idProfessional;
+    private String email;
 
     private String nameService;
 
