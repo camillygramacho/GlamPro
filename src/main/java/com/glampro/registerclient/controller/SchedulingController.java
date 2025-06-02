@@ -1,6 +1,7 @@
 package com.glampro.registerclient.controller;
 
 
+import com.glampro.registerclient.dto.SchedulingPatchDTO;
 import com.glampro.registerclient.dto.SchedulingRequestDTO;
 import com.glampro.registerclient.service.impl.SchedulingServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +43,29 @@ public class SchedulingController {
             return ResponseEntity.ok(schedulingServiceImpl.getListSchedulingParam(email, nameService));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "busca os agendamentos realizados pelo cliente")
+    @GetMapping("/appointmentDone")
+    public ResponseEntity<?> listSchedulingByClient(@Param("emailProfessional") String emailProfessional,
+                                            @Param("nameService") String nameService,
+                                            @RequestHeader String emailLogin){
+        try {
+            return ResponseEntity.ok(schedulingServiceImpl.getListSchedulingByClient(emailProfessional, nameService, emailLogin));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "update de  agendamento")
+    @PatchMapping()
+    public ResponseEntity<?> patchScheduling(@RequestBody List<SchedulingPatchDTO> listSchedulingPatch){
+        try {
+            schedulingServiceImpl.patchScheduling(listSchedulingPatch);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Agendamento(s) realizado(s) com sucesso!"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 

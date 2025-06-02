@@ -29,4 +29,6 @@ public class UserRequestDTO {
 
     private boolean professional;
 
+    private boolean company;
+
 }

@@ -26,4 +26,6 @@ public class UserUpdateDTO {
     private boolean isClient;
 
     private boolean isProfessional;
+
+    private boolean isCompany;
 }

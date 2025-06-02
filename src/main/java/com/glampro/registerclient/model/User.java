@@ -29,7 +29,7 @@ public class User {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "cpf",length = 14)
+    @Column(name = "cpf",length = 20)
     private String cpf;
 
     @Column(name = "password")
@@ -46,6 +46,9 @@ public class User {
 
     @Column(name = "professional")
     private boolean isProfessional;
+
+    @Column(name = "company")
+    private boolean isCompany;
 
     private LocalDateTime dateRegistration;
 

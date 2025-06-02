@@ -1,6 +1,7 @@
 package com.glampro.registerclient.service.impl;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.glampro.registerclient.dto.SchedulingClientResponseDTO;
+import com.glampro.registerclient.dto.SchedulingPatchDTO;
 import com.glampro.registerclient.dto.SchedulingRequestDTO;
 import com.glampro.registerclient.dto.SchedulingResponseDTO;
 import com.glampro.registerclient.exception.ExceptionHandler;
@@ -11,13 +12,9 @@ import com.glampro.registerclient.repository.SchedulingRepository;
 import com.glampro.registerclient.repository.ServiceSalonRepository;
 import com.glampro.registerclient.repository.UserRepository;
 import com.glampro.registerclient.service.SchedulingService;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -52,6 +49,32 @@ public class SchedulingServiceImpl implements SchedulingService {
     }
 
     @Override
+    public void patchScheduling(List<SchedulingPatchDTO> lisSchedulingPatchDTO){
+        for (SchedulingPatchDTO scheduling : lisSchedulingPatchDTO){
+            if (!scheduling.getEmailUserLogin().equalsIgnoreCase(scheduling.getEmailProfessional())){
+
+                Optional<Scheduling> schedulingUpdate = schedulingRepository.findById(UUID.fromString(scheduling.getIdServiceSalon()));
+                if (schedulingUpdate.isEmpty()) {
+                    throw new RuntimeException("Serviço não encontrado.");
+                }
+                Scheduling update = schedulingUpdate.get();
+                update.setAvailable(false);
+                update.setDateTimeAvailable(LocalDateTime.now());
+
+                Optional<User> optionalUser = userRepository.findByEmail(scheduling.getEmailUserLogin());
+                if (optionalUser.isEmpty()) {
+                    throw new RuntimeException("usuário não existe.");
+                }
+                update.setClient(optionalUser.get());
+                schedulingRepository.save(update);
+            }
+        }
+    }
+
+
+
+
+    @Override
     public List<Scheduling> getListScheduling() {
         List<Scheduling> listActive =  new ArrayList<>(1);
         List<Scheduling> list = schedulingRepository.findAll();
@@ -68,12 +91,21 @@ public class SchedulingServiceImpl implements SchedulingService {
     public List<SchedulingResponseDTO> getListSchedulingParam(String email, String nameService) {
         String paramEmail = email!=null && !email.isEmpty()? email: null;
         String paramNameService = nameService!=null && !nameService.isEmpty()? nameService: null;
-        return schedulingRepository.listSchedulingFiltered(paramEmail,paramNameService);
+
+        return schedulingRepository.listSchedulingFilter(paramEmail,paramNameService);
     }
 
     @Override
-    public void getListSchedulingByClient() {
+    public List<SchedulingClientResponseDTO> getListSchedulingByClient(String email, String nameService, String emailLogin) {
+        Optional<User> optionalUser = userRepository.findByEmail(emailLogin);
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("usuário não existe.");
+        }
+        String paramEmail = email!=null && !email.isEmpty()? email: null;
+        String paramNameService = nameService!=null && !nameService.isEmpty()? nameService: null;
 
+        User user = optionalUser.get();
+        return schedulingRepository.listSchedulingClientFilter(paramEmail,paramNameService, user.getId());
     }
 
     @Override

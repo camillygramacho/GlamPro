@@ -41,6 +41,7 @@ public class UserServiceImpl implements UserService {
             user.setPhone(userRequestDTO.getPhone());
             user.setClient(userRequestDTO.isClient());
             user.setProfessional(userRequestDTO.isProfessional());
+            user.setProfessional(userRequestDTO.isCompany());
             user.setDateRegistration(LocalDateTime.now());
             user.setDateUpdate(LocalDateTime.now());
             user.setActive(true);
@@ -73,6 +74,7 @@ public class UserServiceImpl implements UserService {
         user.setPhone(userUpdate.getPhone());
         user.setClient(userUpdate.isClient());
         user.setProfessional(userUpdate.isProfessional());
+        user.setProfessional(userUpdate.isCompany());
 
         Address address = addressRepository.findByUser(user);
         address.setStreet(userUpdate.getAddress().getStreet());
