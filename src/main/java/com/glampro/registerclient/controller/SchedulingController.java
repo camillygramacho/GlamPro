@@ -58,6 +58,16 @@ public class SchedulingController {
         }
     }
 
+    @Operation(summary = "busca cliente agendados do profissional")
+    @GetMapping("/clientsScheduling")
+    public ResponseEntity<?> listSchedulingByProfessional(@RequestHeader String emailLogin){
+        try {
+            return ResponseEntity.ok(schedulingServiceImpl.getListSchedulingProfessional(emailLogin));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @Operation(summary = "update de  agendamento")
     @PatchMapping()
     public ResponseEntity<?> patchScheduling(@RequestBody List<SchedulingPatchDTO> listSchedulingPatch){

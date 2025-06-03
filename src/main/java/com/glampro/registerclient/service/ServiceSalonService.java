@@ -2,6 +2,7 @@ package com.glampro.registerclient.service;
 
 
 import com.glampro.registerclient.dto.ResponseServiceSalonDTO;
+import com.glampro.registerclient.dto.SchedulingClientResponseDTO;
 import com.glampro.registerclient.dto.ServiceSalonRequestDTO;
 import com.glampro.registerclient.dto.ServiceSalonRequestUpdateDTO;
 

@@ -19,6 +19,8 @@ public interface SchedulingService {
 
     void patchScheduling(List<SchedulingPatchDTO> lisSchedulingPatchDTO);
 
+    List<SchedulingClientResponseDTO> getListSchedulingProfessional(String email);
+
     List<SchedulingClientResponseDTO> getListSchedulingByClient(String email, String nameService, String emailLogin);
 
     void deleteScheduling();

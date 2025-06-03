@@ -1,9 +1,6 @@
 package com.glampro.registerclient.service.impl;
 
-import com.glampro.registerclient.dto.SchedulingClientResponseDTO;
-import com.glampro.registerclient.dto.SchedulingPatchDTO;
-import com.glampro.registerclient.dto.SchedulingRequestDTO;
-import com.glampro.registerclient.dto.SchedulingResponseDTO;
+import com.glampro.registerclient.dto.*;
 import com.glampro.registerclient.exception.ExceptionHandler;
 import com.glampro.registerclient.model.Scheduling;
 import com.glampro.registerclient.model.ServiceSalon;
@@ -33,6 +30,9 @@ public class SchedulingServiceImpl implements SchedulingService {
     @Autowired
     protected SchedulingRepository schedulingRepository;
 
+    @Autowired
+    private EmailService emailService;
+
 
     @Override
     public void createScheduling(String email, List<SchedulingRequestDTO> schedulingRequestDTO) {
@@ -50,8 +50,11 @@ public class SchedulingServiceImpl implements SchedulingService {
 
     @Override
     public void patchScheduling(List<SchedulingPatchDTO> lisSchedulingPatchDTO){
+        List<EnviarEmailProfissinalDTO> listEmailProfessional = new ArrayList<>();
         for (SchedulingPatchDTO scheduling : lisSchedulingPatchDTO){
             if (!scheduling.getEmailUserLogin().equalsIgnoreCase(scheduling.getEmailProfessional())){
+                EnviarEmailProfissinalDTO enviarEmailProfissinalDTO = new EnviarEmailProfissinalDTO();
+                StringBuilder service = new StringBuilder();
 
                 Optional<Scheduling> schedulingUpdate = schedulingRepository.findById(UUID.fromString(scheduling.getIdServiceSalon()));
                 if (schedulingUpdate.isEmpty()) {
@@ -59,20 +62,51 @@ public class SchedulingServiceImpl implements SchedulingService {
                 }
                 Scheduling update = schedulingUpdate.get();
                 update.setAvailable(false);
-                update.setDateTimeAvailable(LocalDateTime.now());
+                update.setDateScheduling(LocalDateTime.now());
+                update.setDateUpdate(LocalDateTime.now());
 
                 Optional<User> optionalUser = userRepository.findByEmail(scheduling.getEmailUserLogin());
                 if (optionalUser.isEmpty()) {
                     throw new RuntimeException("usuário não existe.");
                 }
-                update.setClient(optionalUser.get());
+                User userClient = optionalUser.get();
+                update.setClient(userClient);
                 schedulingRepository.save(update);
+
+                ServiceSalon serviceSalon = update.getServiceSalon();
+                User userProfessional = serviceSalon.getProfessional();
+
+                //dados do email
+                service.append("<p>Servico: ").append(serviceSalon.getNameService()).append("</p>");
+                service.append("<p>Data: ").append(update.getDateTimeAvailable()).append("</p>");
+                service.append("<p>Valor: ").append(serviceSalon.getValueService()).append("</p><br/>");
+                enviarEmailProfissinalDTO.setEmailProfessional(scheduling.getEmailProfessional());
+                enviarEmailProfissinalDTO.setServico(service);
+                enviarEmailProfissinalDTO.setNameProfessional(userProfessional.getName());
+                enviarEmailProfissinalDTO.setNameClient(userClient.getName());
+                enviarEmailProfissinalDTO.setEmailClient(userClient.getEmail());
+
+                listEmailProfessional.add(enviarEmailProfissinalDTO);
             }
         }
+        sendMailProfessional(listEmailProfessional);
     }
 
-
-
+    private void sendMailProfessional(List<EnviarEmailProfissinalDTO> listEmailProfessional){
+        StringBuilder service = new StringBuilder();
+        for (EnviarEmailProfissinalDTO email : listEmailProfessional){
+           String html = emailService.buildWelcomeEmailProfessional(email.getNameProfessional(),
+                   email.getNameClient(), email.getServico());
+            // Envia o e-mail
+            emailService.sendHtmlEmail(email.getEmailProfessional(), "Agendamento confirmado - GlamPro", html);
+            service.append("<p>Nome Profissional: ").append(email.getNameProfessional()).append("</p>");
+            service.append(email.getServico());
+        }
+        String nameClient = listEmailProfessional.getFirst().getNameClient();
+        String mailClient = listEmailProfessional.getFirst().getEmailClient();
+        String html2 = emailService.buildWelcomeEmailClient(nameClient, service);
+        emailService.sendHtmlEmail(mailClient, "Agendamento realizado - GlamPro", html2);
+    }
 
     @Override
     public List<Scheduling> getListScheduling() {
@@ -106,6 +140,17 @@ public class SchedulingServiceImpl implements SchedulingService {
 
         User user = optionalUser.get();
         return schedulingRepository.listSchedulingClientFilter(paramEmail,paramNameService, user.getId());
+    }
+
+    @Override
+    public List<SchedulingClientResponseDTO> getListSchedulingProfessional(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("usuário não existe.");
+        }
+
+        User user = optionalUser.get();
+        return schedulingRepository.listSchedulingProfessional(email);
     }
 
     @Override

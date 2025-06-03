@@ -60,4 +60,25 @@ public interface SchedulingRepository extends JpaRepository<Scheduling, UUID> {
             @Param("nameService") String nameService,
             @Param("idClient") UUID idClient
     );
+
+    @Query("""
+    SELECT new com.glampro.registerclient.dto.SchedulingClientResponseDTO(
+        ag.id,
+        ser.nameService,
+        us.email,
+        ag.client.name,
+        ad.city,
+        FUNCTION('TO_CHAR', ag.dateTimeAvailable, 'DD/MM/YYYY'),
+        FUNCTION('TO_CHAR', ag.dateTimeAvailable, 'HH24:MI'),
+        FUNCTION('TO_CHAR', ag.dateScheduling, 'DD/MM/YYYY')
+    )
+    FROM Scheduling ag
+    LEFT JOIN ServiceSalon ser ON ag.serviceSalon.id = ser.id and ag.available = false
+    LEFT JOIN User us ON ser.professional.id = us.id
+    LEFT JOIN Address ad ON us.id = ad.user.id
+    WHERE us.email = :email
+""")
+    List<SchedulingClientResponseDTO> listSchedulingProfessional(
+            @Param("email") String email
+    );
 }
